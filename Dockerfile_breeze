@@ -9,13 +9,11 @@ RUN apt update && \
 RUN mkdir /src
 ADD CMakeLists.txt FBGenCMakeBuildInfo.cmake ThriftLibrary.cmake /src/
 COPY build /src/build
-COPY openr /src/openr
-COPY example_openr.conf /etc/openr.conf
+COPY openr/py/openr/ /src/openr
+COPY openr/py/setup.py /src/
 
-# Build OpenR + Dependencies via cmake
-RUN cd /src && build/build_openr.sh && chmod 644 /etc/openr.conf
-RUN mkdir /opt/bin && cp /src/build/docker_openr_helper.sh /opt/bin
-
+# Compile fbthrift + deps
+RUN cd /src && build/build_fbthrift.sh
 # Install `breeze` OpenR CLI
 RUN cd /src && build/build_breeze.sh
 
@@ -24,6 +22,4 @@ RUN apt remove --yes build-essential git libssl-dev m4 && \
     apt autoremove --yes && \
     rm -rf /src /tmp/* /var/lib/apt/lists/*
 
-CMD ["/opt/bin/docker_openr_helper.sh"]
-# Expose OpenR Thrift port - Recommended to run OpenR on host network ...
-EXPOSE 2018/tcp
+CMD ["breeze --help"]
